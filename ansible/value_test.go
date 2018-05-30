@@ -1,9 +1,9 @@
 package ansible
 
 import (
-	"testing"
-	"math"
 	"encoding/json"
+	"math"
+	"testing"
 )
 
 ////////////
@@ -54,7 +54,6 @@ func TestJSONMarshalFloatPosInf(t *testing.T) {
 
 ////////////
 // String testing
-
 func TestJSONMarshalStringEmpty(t *testing.T) {
 	testVarVal(t, NewString(""), "\"\"")
 }
@@ -91,8 +90,7 @@ func TestJSONMarshalIntMin(t *testing.T) {
 func testVarVal(t *testing.T, v VarValue, expect string) {
 	if b, err := json.Marshal(&v); err != nil {
 		t.Errorf("Error JSON marshaling %s", v.String())
-	} else if (string(b) != expect) {
+	} else if string(b) != expect {
 		t.Errorf("Marshaled json ('%s') doesn't match expectation ('%s')", string(b), expect)
 	}
 }
-
