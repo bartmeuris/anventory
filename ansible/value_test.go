@@ -7,6 +7,22 @@ import (
 )
 
 ////////////
+// ansibleStringList testing
+
+func TestJSONMarshalStringList(t *testing.T) {
+	al := ansibleStringlist{"test", "test2"}
+	expect := `{"test":{},"test2":{}}`
+	b, err := json.Marshal(&al)
+	if err != nil {
+		//fmt.Println(string(b))
+		t.Error(err)
+	}
+	if (string)(b) != expect {
+		t.Errorf("Expected '%s', got '%s'", expect, string(b))
+	}
+}
+
+////////////
 // Boolean testing
 
 func TestJSONMarshalBoolFalse(t *testing.T) {
