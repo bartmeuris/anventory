@@ -1,27 +1,33 @@
 package ansible
 
 import (
-    "fmt"
-    "encoding/json"
+	"bytes"
+	"encoding/json"
+	"fmt"
 )
 
 type ansibleType int
 
+// Here to allow strings to be formatted as maps, so Ansible's inventory is happy
+// In order to do this, there's a special JSON marshal function to do so
+type ansibleStringlist []string
+
 const (
-    aInt ansibleType = iota
-    aFloat
-    aBool
-    aString
+	aNone ansibleType = iota
+	aInt
+	aFloat
+	aBool
+	aString
 )
 
 // VarValue represents the value of an Ansible variable
 // This differentiates between string, int, float and bool, in order to parse into the correct JSON representation
 type VarValue struct {
 	atype ansibleType
-	ival int64
-	fval float64
-	bval bool
-	sval string
+	ival  int64
+	fval  float64
+	bval  bool
+	sval  string
 }
 
 // SetString sets the string value of this variable object
@@ -42,6 +48,7 @@ func (a *VarValue) SetInt(i int64) {
 	a.atype = aInt
 	a.ival = i
 }
+
 // NewInt creates a new variable value object that represents the provided integer value
 func NewInt(i int64) VarValue {
 	ret := VarValue{}
@@ -91,8 +98,10 @@ func (a *VarValue) String() string {
 }
 
 // MarshalJSON marshals the value of the object according to it's type
-func (a *VarValue) MarshalJSON() ([]byte, error) {
+func (a VarValue) MarshalJSON() ([]byte, error) {
 	switch a.atype {
+	case aNone:
+		return json.Marshal("")
 	case aInt:
 		return json.Marshal(a.ival)
 	case aFloat:
@@ -105,3 +114,29 @@ func (a *VarValue) MarshalJSON() ([]byte, error) {
 	return nil, fmt.Errorf("Could not marshal unknown AnsibleType %d", a.atype)
 }
 
+func (sl ansibleStringlist) MarshalJSON() ([]byte, error) {
+	ret := bytes.NewBuffer([]byte{})
+	if _, err := ret.WriteString("{"); err != nil {
+		return nil, err
+	}
+	for s := range sl {
+		if s != 0 {
+			if _, err := ret.WriteString(","); err != nil {
+				return nil, err
+			}
+		}
+		if b, err := json.Marshal(sl[s]); err != nil {
+			return nil, err
+		} else if _, werr := ret.Write(b); werr != nil {
+			return nil, err
+		}
+		if _, err := ret.WriteString(":{}"); err != nil {
+			return nil, err
+		}
+	}
+	if _, err := ret.WriteString("}"); err != nil {
+		return nil, err
+	}
+	//fmt.Println((string(ret.Bytes())))
+	return ret.Bytes(), nil
+}
