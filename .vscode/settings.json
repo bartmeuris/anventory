@@ -1,0 +1,10 @@
+{
+    "go.addTags": {
+        "tags": "json",
+        "options": "json=omitempty",
+        "promptForTags": true,
+        "transform": "snakecase"
+    },
+    "go.autocompleteUnimportedPackages": true,
+    "go.inferGopath": true,
+}
