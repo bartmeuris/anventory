@@ -3,6 +3,7 @@ package ansible
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -23,6 +24,8 @@ func TestAnsible(t *testing.T) {
 		t.Errorf("Could not marshal inventory: %v", err)
 	} else if string(b) != expect {
 		fmt.Printf("Expected '%s' != marshalled '%s", expect, string(b))
+	} else if os.Getenv("ANVENTORY_WRITE") != "" {
+		b, _ := json.MarshalIndent(&i, "", "  ")
+		ioutil.WriteFile("../inventory.json", b, 0644)
 	}
-	//ioutil.WriteFile("../inventory.json", b, 0644)
 }
