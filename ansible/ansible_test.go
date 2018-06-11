@@ -4,28 +4,37 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"testing"
+	"flag"
+	"path/filepath"
+	"bytes"
 )
 
+var update = flag.Bool("update", false, "update .golden files")
+
 func TestAnsible(t *testing.T) {
-	expect := `{"_meta":{"vars":{"localhost":{"ansible_host":"localhost","ansible_user":"bart","has_something":false,"some_number":50}}},"all":{"hosts":{"localhost":{}},"children":{"ungrouped":{}}},"test":{"hosts":{"localhost":{}}},"ungrouped":{}}`
+	//expect := `{"_meta":{"vars":{"localhost":{"ansible_host":"localhost","ansible_user":"bart","has_something":false,"some_number":50}}},"all":{"hosts":{"localhost":{}},"children":{"ungrouped":{}}},"test":{"hosts":{"localhost":{}}},"ungrouped":{}}`
 	i := NewInventory()
 	g, _ := i.AddGroup("test")
 	g.AddHost("localhost")
 	hv := i.GetHostVars("localhost")
 
 	hv["ansible_host"] = NewString("localhost")
-	hv["ansible_user"] = NewString(os.Getenv("USER"))
+	//hv["ansible_user"] = NewString(os.Getenv("USER"))
+	hv["ansible_user"] = NewString("ansible")
 	hv["has_something"] = NewBool(false)
 	hv["some_number"] = NewInt(50)
-
 	if b, err := json.Marshal(&i); err != nil {
 		t.Errorf("Could not marshal inventory: %v", err)
-	} else if string(b) != expect {
-		fmt.Printf("Expected '%s' != marshalled '%s", expect, string(b))
-	} else if os.Getenv("ANVENTORY_WRITE") != "" {
-		b, _ := json.MarshalIndent(&i, "", "  ")
-		ioutil.WriteFile("../inventory.json", b, 0644)
+	} else {
+		golden := filepath.Join("testdata", t.Name() + ".golden.json")
+		if *update {
+			ioutil.WriteFile(golden, b, 0644)
+		}
+		expected, _ := ioutil.ReadFile(golden)
+		
+		if !bytes.Equal(b, expected) {
+			fmt.Printf("Expected '%s' != marshalled '%s", string(expected), string(b))
+		}
 	}
 }

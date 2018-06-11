@@ -1,0 +1,1 @@
+{"_meta":{"vars":{"localhost":{"ansible_host":"localhost","ansible_user":"ansible","has_something":false,"some_number":50}}},"all":{"hosts":{"localhost":{}},"children":{"ungrouped":{}}},"test":{"hosts":{"localhost":{}}},"ungrouped":{}}
