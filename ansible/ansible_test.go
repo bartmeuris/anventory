@@ -10,6 +10,7 @@ import (
 	"bytes"
 )
 
+// see https://medium.com/@povilasve/go-advanced-tips-tricks-a872503ac859 for testing tips/tricks
 var update = flag.Bool("update", false, "update .golden files")
 
 func TestAnsible(t *testing.T) {
