@@ -1,1 +1,1 @@
-{"_meta":{"vars":{"localhost":{"ansible_host":"localhost","ansible_user":"ansible","has_something":false,"some_number":50}}},"all":{"hosts":{"localhost":{}},"children":{"ungrouped":{}}},"test":{"hosts":{"localhost":{}}},"ungrouped":{}}
+{"_meta":{"vars":{"localhost":{"ansible_host":"localhost","ansible_user":"ansible","has_something":false,"some_number":50},"localhost2":{"test":5}}},"all":{"hosts":{"localhost":{},"localhost2":{}},"children":{"ungrouped":{}}},"test":{"hosts":{"localhost":{}}},"ungrouped":{"hosts":{"localhost2":{}}}}

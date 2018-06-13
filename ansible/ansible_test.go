@@ -1,13 +1,13 @@
 package ansible
 
 import (
+	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
-	"testing"
-	"flag"
 	"path/filepath"
-	"bytes"
+	"testing"
 )
 
 // see https://medium.com/@povilasve/go-advanced-tips-tricks-a872503ac859 for testing tips/tricks
@@ -25,15 +25,19 @@ func TestAnsible(t *testing.T) {
 	hv["ansible_user"] = NewString("ansible")
 	hv["has_something"] = NewBool(false)
 	hv["some_number"] = NewInt(50)
+
+	hv2 := i.GetHostVars("localhost2")
+	hv2["test"] = NewInt(5)
+
 	if b, err := json.Marshal(&i); err != nil {
 		t.Errorf("Could not marshal inventory: %v", err)
 	} else {
-		golden := filepath.Join("testdata", t.Name() + ".golden.json")
+		golden := filepath.Join("testdata", t.Name()+".golden.json")
 		if *update {
 			ioutil.WriteFile(golden, b, 0644)
 		}
 		expected, _ := ioutil.ReadFile(golden)
-		
+
 		if !bytes.Equal(b, expected) {
 			fmt.Printf("Expected '%s' != marshalled '%s", string(expected), string(b))
 		}

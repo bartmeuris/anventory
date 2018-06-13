@@ -56,26 +56,73 @@ func (i Inventory) GetGroup(name string) *Group {
 	return nil
 }
 
-// MarshalJSON implements a custom marshalling
-func (i Inventory) MarshalJSON() ([]byte, error) {
-	// make sure all hosts are added to the "all" group.
-	allGroup, allOk := i["all"].(*Group)
+func (i Inventory) fixAllGroup() error {
+	allgroup, allOk := i["all"].(*Group)
 	if !allOk {
-		return nil, fmt.Errorf("Internal inventory error: 'all' entry is not a group")
+		return fmt.Errorf("Internal inventory error: 'all' entry is not a group")
 	}
 	for g := range i {
 		if g == "all" {
 			continue
 		} else if i[g].IsGroup() {
 			for _, gHost := range i[g].(*Group).Hosts {
-				allGroup.AddHost(gHost)
+				allgroup.AddHost(gHost)
 			}
 		} else if meta, ok := i[g].(*Meta); ok {
 			// Treat Meta group
 			for hv := range meta.Vars {
-				allGroup.AddHost(hv)
+				allgroup.AddHost(hv)
 			}
 		}
+	}
+	return nil
+}
+
+// FixGroups adds all hosts to the 'all' group. If a host is not present in any
+//  other group, it adds it to the 'ungrouped' group
+func (i Inventory) FixGroups() error {
+	if err := i.fixAllGroup(); err != nil {
+		return err
+	}
+	// if this fails, the fixAllGroup() should have failed too, so ignore error.
+	allgroup, _ := i["all"].(*Group)
+	ungrouped, ugok := i["ungrouped"].(*Group)
+	if !ugok {
+		return fmt.Errorf("Internal inventory error: 'ungrouped' entry is not a group")
+
+	}
+	for _, r := range allgroup.Hosts {
+		found := false
+	Hostfound:
+		for gn := range i {
+			if gn == "all" || gn == "ungrouped" || !i[gn].IsGroup() {
+				continue
+			}
+			grp, gok := i[gn].(*Group)
+			if !gok {
+				continue
+			}
+			for _, h := range grp.Hosts {
+				if h == r {
+					found = true
+					break Hostfound
+				}
+			}
+		}
+		if !found {
+			// Add to the 'ungrouped' group
+			ungrouped.AddHost(r)
+		}
+	}
+	return nil
+}
+
+// MarshalJSON implements a custom marshalling
+func (i Inventory) MarshalJSON() ([]byte, error) {
+	// make sure all hosts are added to the "all" group.
+	// fixUngrouped() also calls
+	if err := i.FixGroups(); err != nil {
+		return nil, err
 	}
 	return json.Marshal((map[string]InventoryEntry)(i))
 }
